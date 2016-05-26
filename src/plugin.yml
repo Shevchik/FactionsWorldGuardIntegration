@@ -1,0 +1,5 @@
+name: FactionsWorldGuardIntegration
+version: 1.0
+authors: [_Shevchik_]
+main: factionsworldguardintegration.FactionsWorldGuardIntegration
+depend: [Factions, WorldGuard]
