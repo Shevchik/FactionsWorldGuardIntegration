@@ -26,7 +26,7 @@ public class FactionsTerritoryCalimListener implements Listener {
 	private boolean hasRegion(World world, int chunkX, int chunkZ) {
 		ProtectedCuboidRegion testrg = new ProtectedCuboidRegion(
 			"testrg",
-			new BlockVector(chunkX << 4 + 15, 255, chunkZ << 4),
+			new BlockVector((chunkX << 4) + 15, 255, (chunkZ << 4) + 15),
 			new BlockVector(chunkX << 4, 0, chunkZ << 4)
 		);
 		return WGBukkit.getRegionManager(world).getApplicableRegions(testrg).size() > 0;
