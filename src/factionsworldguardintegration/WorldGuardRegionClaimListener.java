@@ -13,8 +13,10 @@ import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.massivecore.ps.PSBuilder;
+import com.sk89q.worldedit.IncompleteRegionException;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldedit.regions.Region;
 
 public class WorldGuardRegionClaimListener implements Listener {
 
@@ -25,38 +27,39 @@ public class WorldGuardRegionClaimListener implements Listener {
 		Player player = event.getPlayer();
 		String[] args = event.getMessage().split("\\s+");
 		if (args.length >= 3 && wgRegionCommands.contains(args[0].substring(1, args[0].length())) && args[1].equalsIgnoreCase("claim")) {
-			Selection selection = JavaPlugin.getPlugin(WorldEditPlugin.class).getSelection(player);
-			int chunkXMin = selection.getNativeMinimumPoint().getBlockX() >> 4;
-			int chunkZMin = selection.getNativeMinimumPoint().getBlockZ() >> 4;
-			int chunkXMax = selection.getNativeMaximumPoint().getBlockX() >> 4;
-			int chunkZMax = selection.getNativeMaximumPoint().getBlockZ() >> 4;
-			for (int chunkX = chunkXMin; chunkX <= chunkXMax; chunkX++) {
-				for (int chunkZ = chunkZMin; chunkZ <= chunkZMax; chunkZ++) {
-					Faction faction = BoardColl.get().getFactionAt(
-						new PSBuilder()
-						.world(player.getWorld())
-						.chunkX(chunkX)
-						.chunkZ(chunkZ)
-						.build()
-					);
-					if (isPlayerCreatedFaction(faction)) {
-						event.setCancelled(true);
-						player.sendMessage(Locale.intersectsFactionTerritory());
-						break;
+			try {
+				Region selection = JavaPlugin.getPlugin(WorldEditPlugin.class).getSession(player).getSelection(BukkitAdapter.adapt(player.getWorld()));
+				int chunkXMin = selection.getMinimumPoint().getBlockX() >> 4;
+				int chunkZMin = selection.getMinimumPoint().getBlockZ() >> 4;
+				int chunkXMax = selection.getMaximumPoint().getBlockX() >> 4;
+				int chunkZMax = selection.getMaximumPoint().getBlockZ() >> 4;
+				for (int chunkX = chunkXMin; chunkX <= chunkXMax; chunkX++) {
+					for (int chunkZ = chunkZMin; chunkZ <= chunkZMax; chunkZ++) {
+						Faction faction = BoardColl.get().getFactionAt(
+							new PSBuilder()
+							.world(player.getWorld())
+							.chunkX(chunkX)
+							.chunkZ(chunkZ)
+							.build()
+						);
+						if (isPlayerCreatedFaction(faction)) {
+							event.setCancelled(true);
+							player.sendMessage(Locale.intersectsFactionTerritory());
+							break;
+						}
 					}
 				}
+			} catch (IncompleteRegionException e) {
 			}
 		}
 	}
 
-	private boolean isPlayerCreatedFaction(Faction faction) {
+	protected static boolean isPlayerCreatedFaction(Faction faction) {
 		if (faction == null) {
 			return false;
 		}
 		String factionId = faction.getId();
 		return !factionId.equals(Factions.ID_NONE) && !factionId.equals(Factions.ID_SAFEZONE) && !factionId.equals(Factions.ID_WARZONE);
 	}
-
-	
 
 }
